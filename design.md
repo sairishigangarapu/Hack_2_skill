@@ -6,13 +6,13 @@
 
 ```
 ┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
-│   User Clients  │    │   API Gateway   │    │  Core Services  │
+│  Telegram Bot   │    │   API Gateway   │    │  Core Services  │
 │                 │    │                 │    │                 │
-│ • Web App       │◄──►│ • Rate Limiting │◄──►│ • AI Engine     │
-│ • Mobile App    │    │ • Authentication│    │ • NLP Service   │
-│ • WhatsApp      │    │ • Load Balancer │    │ • TTS/STT       │
-│ • IVR System    │    │ • API Routing   │    │ • Translation   │
-│ • USSD          │    │                 │    │                 │
+│ • Bot Interface │◄──►│ • Rate Limiting │◄──►│ • AI Engine     │
+│ • Webhook       │    │ • Authentication│    │ • NLP Service   │
+│ • Media Handler │    │ • Load Balancer │    │ • TTS/STT       │
+│ • Inline Queries│    │ • API Routing   │    │ • Translation   │
+│ • Keyboards     │    │                 │    │                 │
 └─────────────────┘    └─────────────────┘    └─────────────────┘
                                 │
                                 ▼
@@ -29,41 +29,98 @@
 ### Microservices Architecture
 
 #### Core Services
-1. **AI Conversation Service**
+1. **Telegram Bot Service**
+   - Webhook handling for incoming messages
+   - Message parsing and routing
+   - Rich media processing (photos, documents, voice)
+   - Inline keyboard and quick reply management
+   - Bot command processing
+
+2. **AI Conversation Service**
    - Natural language understanding
    - Intent recognition and entity extraction
    - Context management and conversation flow
    - Response generation and formatting
 
-2. **Multilingual Processing Service**
-   - Language detection
+3. **Multilingual Processing Service**
+   - Language detection from user messages
    - Translation services
    - Localized content management
    - Cultural context adaptation
 
-3. **Voice Processing Service**
-   - Speech-to-text conversion
-   - Text-to-speech synthesis
+4. **Voice Processing Service**
+   - Voice message transcription
+   - Text-to-speech for voice responses
    - Audio quality optimization
-   - Voice biometric authentication
+   - Voice command recognition
 
-4. **Content Management Service**
+5. **Content Management Service**
    - Government service information
    - Document requirements database
    - Eligibility criteria engine
    - Policy update management
 
-5. **User Management Service**
-   - User authentication and authorization
-   - Profile management
-   - Preference settings
-   - Session management
+6. **User Management Service**
+   - Telegram user authentication
+   - Profile management and preferences
+   - Session state management
+   - User analytics and tracking
 
-6. **Integration Service**
-   - External API orchestration
-   - Data synchronization
-   - Webhook management
-   - Third-party service coordination
+## Telegram Bot Architecture
+
+### Bot Framework Structure
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                    Telegram Bot Layer                       │
+├─────────────────────────────────────────────────────────────┤
+│  Webhook Handler                                            │
+│  ┌─────────────┐ ┌─────────────┐ ┌─────────────┐          │
+│  │   Message   │ │  Callback   │ │   Inline    │          │
+│  │   Handler   │ │   Handler   │ │   Query     │          │
+│  └─────────────┘ └─────────────┘ └─────────────┘          │
+├─────────────────────────────────────────────────────────────┤
+│  Middleware Layer                                           │
+│  ┌─────────────┐ ┌─────────────┐ ┌─────────────┐          │
+│  │Session Mgmt │ │Rate Limiting│ │   Logging   │          │
+│  └─────────────┘ └─────────────┘ └─────────────┘          │
+├─────────────────────────────────────────────────────────────┤
+│  Scene Management                                           │
+│  ┌─────────────┐ ┌─────────────┐ ┌─────────────┐          │
+│  │Service Menu │ │Document Req │ │Eligibility  │          │
+│  │   Scene     │ │   Scene     │ │   Scene     │          │
+│  └─────────────┘ └─────────────┘ └─────────────┘          │
+├─────────────────────────────────────────────────────────────┤
+│  Response Builder                                           │
+│  ┌─────────────┐ ┌─────────────┐ ┌─────────────┐          │
+│  │Text Response│ │Media Builder│ │Keyboard Gen │          │
+│  └─────────────┘ └─────────────┘ └─────────────┘          │
+└─────────────────────────────────────────────────────────────┘
+```
+
+### Conversation Flow Management
+
+#### State Machine Design
+```javascript
+// Bot conversation states
+const BotStates = {
+  INITIAL: 'initial',
+  LANGUAGE_SELECTION: 'language_selection',
+  SERVICE_CATEGORY: 'service_category',
+  SERVICE_DETAILS: 'service_details',
+  DOCUMENT_UPLOAD: 'document_upload',
+  ELIGIBILITY_CHECK: 'eligibility_check',
+  FEEDBACK: 'feedback'
+};
+
+// Scene transitions
+const sceneTransitions = {
+  [BotStates.INITIAL]: [BotStates.LANGUAGE_SELECTION],
+  [BotStates.LANGUAGE_SELECTION]: [BotStates.SERVICE_CATEGORY],
+  [BotStates.SERVICE_CATEGORY]: [BotStates.SERVICE_DETAILS, BotStates.ELIGIBILITY_CHECK],
+  // ... more transitions
+};
+```
 
 ## Component Design
 
@@ -107,13 +164,16 @@
 
 **User Database (PostgreSQL)**
 ```sql
--- Users table
+-- Users table (Telegram-specific)
 CREATE TABLE users (
-    user_id UUID PRIMARY KEY,
-    phone_number VARCHAR(15) UNIQUE,
+    user_id BIGINT PRIMARY KEY, -- Telegram user ID
+    telegram_username VARCHAR(50),
+    first_name VARCHAR(100),
+    last_name VARCHAR(100),
     preferred_language VARCHAR(10),
     location JSONB,
     demographics JSONB,
+    bot_state VARCHAR(50), -- current conversation state
     created_at TIMESTAMP,
     updated_at TIMESTAMP
 );
@@ -121,8 +181,9 @@ CREATE TABLE users (
 -- Conversations table
 CREATE TABLE conversations (
     conversation_id UUID PRIMARY KEY,
-    user_id UUID REFERENCES users(user_id),
-    channel VARCHAR(20), -- whatsapp, web, ivr, etc.
+    telegram_user_id BIGINT REFERENCES users(user_id),
+    chat_id BIGINT, -- Telegram chat ID
+    message_thread_id INTEGER, -- for group chats
     started_at TIMESTAMP,
     ended_at TIMESTAMP,
     status VARCHAR(20)
@@ -132,9 +193,10 @@ CREATE TABLE conversations (
 CREATE TABLE messages (
     message_id UUID PRIMARY KEY,
     conversation_id UUID REFERENCES conversations(conversation_id),
+    telegram_message_id INTEGER, -- Telegram message ID
     sender VARCHAR(10), -- user, bot
     content TEXT,
-    message_type VARCHAR(20), -- text, voice, image
+    message_type VARCHAR(20), -- text, voice, photo, document
     language VARCHAR(10),
     timestamp TIMESTAMP
 );
@@ -205,63 +267,96 @@ Response Generation → Personalization → Multi-modal Output → User Feedback
 Context Update → Analytics Logging → Conversation Continuation
 ```
 
-### Multi-Channel Interface Design
+### Telegram Bot Interface Design
 
-#### WhatsApp Interface
+#### Bot Commands Structure
+```
+/start - Initialize bot and language selection
+/help - Show available commands and features
+/services - Browse government services
+/eligibility - Check eligibility for schemes
+/documents - Get document requirements
+/track - Track application status
+/language - Change language preference
+/feedback - Provide feedback
+/support - Contact human support
+```
+
+#### Interactive Elements
+
+**Inline Keyboards for Service Categories:**
 ```
 ┌─────────────────────────────────┐
-│ 🏛️ AI Civic Helpdesk            │
+│ 🏛️ AI Civic Helpdesk Bot        │
 ├─────────────────────────────────┤
-│ Hello! I'm here to help you     │
-│ with government services.       │
+│ Welcome! Choose a service:      │
 │                                 │
-│ Choose your preferred language: │
-│ 🇮🇳 हिंदी  🇬🇧 English         │
-│ 🇹🇦 தமிழ்  🇹🇪 తెలుగు          │
+│ [📄 Identity Documents]         │
+│ [🏠 Housing & Property]         │
+│ [💰 Financial Services]         │
+│ [🌾 Agriculture & Rural]        │
+│ [👥 Social Welfare]             │
+│ [🎓 Education]                  │
 │                                 │
-│ Or simply ask me anything!      │
-├─────────────────────────────────┤
-│ Quick Actions:                  │
-│ 📄 Document Help               │
-│ 🎯 Check Eligibility          │
-│ 📍 Find Offices               │
-│ 📞 Contact Support            │
+│ Or type your question directly! │
 └─────────────────────────────────┘
 ```
 
-#### Voice Interface (IVR) Flow
+**Quick Reply Keyboards:**
 ```
-Welcome → Language Selection → Main Menu → Service Category
-    ↓
-Specific Service → Information Delivery → Action Options → Confirmation
-    ↓
-Follow-up → Feedback Collection → End Call / Transfer to Human
+┌─────────────────────────────────┐
+│ Select your preferred language: │
+│                                 │
+│ [🇮🇳 हिंदी] [🇬🇧 English]      │
+│ [🇹🇦 தமிழ்] [🇹🇪 తెలుగు]       │
+│ [🇧🇩 বাংলা] [🇲🇭 मराठी]       │
+│                                 │
+│ [⚙️ More Languages...]          │
+└─────────────────────────────────┘
 ```
 
-#### Web Interface Components
-- **Chat Widget**: Floating chat interface with voice input button
-- **Service Explorer**: Visual navigation through government services
-- **Document Checker**: Interactive tool for document requirements
-- **Progress Tracker**: Visual representation of application status
+#### Rich Media Responses
+
+**Document Checklist with Images:**
+```
+┌─────────────────────────────────┐
+│ 📋 Aadhaar Card Requirements    │
+├─────────────────────────────────┤
+│ Required Documents:             │
+│                                 │
+│ ✅ Proof of Identity:           │
+│ • Birth Certificate             │
+│ • School Certificate            │
+│ • Passport                      │
+│                                 │
+│ ✅ Proof of Address:            │
+│ • Utility Bill                  │
+│ • Bank Statement                │
+│ • Rent Agreement                │
+│                                 │
+│ [📷 Upload Documents]           │
+│ [📍 Find Center] [💬 Ask Query] │
+└─────────────────────────────────┘
+```
 
 ## Data Flow Diagrams
 
-### User Query Processing Flow
+### Telegram Bot Processing Flow
 
 ```
 ┌─────────────┐    ┌─────────────┐    ┌─────────────┐
-│User Input   │───►│Language     │───►│Intent       │
-│(Text/Voice) │    │Detection    │    │Recognition  │
+│Telegram     │───►│Webhook      │───►│Message      │
+│Message      │    │Handler      │    │Parser       │
 └─────────────┘    └─────────────┘    └─────────────┘
                                            │
 ┌─────────────┐    ┌─────────────┐    ┌─────────────┐
-│Response     │◄───│Knowledge    │◄───│Entity       │
-│Generation   │    │Retrieval    │    │Extraction   │
+│Bot Response │◄───│Response     │◄───│AI Processing│
+│(Telegram API)│    │Formatter    │    │Engine       │
 └─────────────┘    └─────────────┘    └─────────────┘
        │
 ┌─────────────┐    ┌─────────────┐    ┌─────────────┐
-│Multi-modal  │───►│User         │───►│Analytics &  │
-│Output       │    │Delivery     │    │Logging      │
+│User Gets    │───►│Analytics &  │───►│State        │
+│Response     │    │Logging      │    │Management   │
 └─────────────┘    └─────────────┘    └─────────────┘
 ```
 
@@ -281,14 +376,30 @@ Follow-up → Feedback Collection → End Call / Transfer to Human
 
 ## Technology Choices and Justification
 
-### Backend Technology Stack
+### Telegram Bot Technology Stack
 
-#### Node.js with Express.js
+#### Node.js with Telegraf.js Framework
 **Justification:**
-- Excellent for real-time applications with WebSocket support
-- Large ecosystem of packages for AI/ML integration
-- Good performance for I/O intensive operations
-- Strong community support for government tech initiatives
+- Telegraf.js is the most popular and well-maintained Telegram bot framework
+- Excellent middleware support for session management and scene handling
+- Built-in support for inline keyboards, webhooks, and file handling
+- Strong TypeScript support for better development experience
+- Active community and comprehensive documentation
+
+#### Telegram Bot API Integration
+**Justification:**
+- Native support for rich media (photos, documents, voice messages)
+- Inline keyboards and custom keyboards for better UX
+- Built-in payment processing capabilities
+- File upload/download with automatic handling
+- Webhook support for real-time message processing
+
+#### Redis for Session Management
+**Justification:**
+- Perfect for managing bot conversation states
+- Fast session storage for multi-step conversations
+- Built-in expiration for temporary data
+- Excellent integration with Telegraf.js sessions
 
 #### PostgreSQL + MongoDB Hybrid
 **Justification:**
@@ -345,79 +456,80 @@ Follow-up → Feedback Collection → End Call / Transfer to Human
 
 ## Implementation Approach
 
-### Phase 1: MVP Development (4-6 weeks)
+### Phase 1: Telegram Bot MVP (4-6 weeks)
 **Core Features:**
-- Basic text-based chatbot in English and Hindi
+- Basic Telegram bot with command handling
+- Text-based conversations in English and Hindi
 - Essential government services database (top 10 services)
-- WhatsApp integration
-- Simple web interface
-- Basic user management
+- Inline keyboards for service navigation
+- Basic user state management
 
 **Technical Implementation:**
-- Set up basic microservices architecture
-- Implement core AI conversation engine
-- Create initial content database
-- Deploy on cloud infrastructure
-- Basic monitoring and logging
+- Set up Telegraf.js bot framework
+- Implement webhook handling
+- Create basic conversation flows
+- Set up PostgreSQL database
+- Deploy on cloud with webhook endpoint
 
-### Phase 2: Enhanced Features (6-8 weeks)
+### Phase 2: Enhanced Bot Features (6-8 weeks)
 **Additional Features:**
-- Voice input/output capabilities
+- Voice message processing
 - 5 additional Indian languages
-- IVR system integration
-- Mobile application
-- Advanced user personalization
+- Rich media responses (images, documents)
+- File upload for document verification
+- Advanced inline keyboards and quick replies
 
 **Technical Implementation:**
 - Integrate speech processing services
-- Expand multilingual capabilities
-- Develop mobile applications
-- Implement advanced analytics
-- Enhanced security measures
+- Implement file handling capabilities
+- Create rich response templates
+- Add multilingual content management
+- Enhanced conversation state management
 
 ### Phase 3: Advanced Integration (8-10 weeks)
 **Advanced Features:**
 - Government API integrations
-- Document verification
-- Application tracking
-- Payment gateway integration
-- Advanced analytics dashboard
+- Document verification through photos
+- Application status tracking
+- Telegram Payments integration
+- Admin dashboard for bot management
 
 **Technical Implementation:**
-- Complex third-party integrations
-- Advanced AI features
-- Comprehensive testing
-- Performance optimization
-- Security auditing
+- Complex third-party API integrations
+- Image processing for document verification
+- Payment gateway setup
+- Analytics and monitoring dashboard
+- Advanced security measures
 
 ### Phase 4: Scale and Optimize (4-6 weeks)
 **Optimization:**
-- Performance tuning
+- Performance tuning for high message volume
 - Advanced caching strategies
-- Load testing and optimization
+- Load testing with multiple concurrent users
 - Security hardening
-- User feedback integration
+- User feedback integration and bot improvements
 
 ## Scalability Considerations
 
-### Horizontal Scaling Strategy
+### Telegram Bot Scaling Strategy
 
-#### Microservices Scaling
-- **AI Engine**: Auto-scale based on query volume
-- **Voice Processing**: Scale during peak voice usage hours
-- **Content Service**: Scale based on content update frequency
-- **User Service**: Scale based on active user count
+#### Bot Instance Scaling
+- **Webhook Load Balancing**: Multiple bot instances behind load balancer
+- **Message Queue**: Redis-based queue for handling high message volume
+- **Session Clustering**: Distributed session storage across instances
+- **File Processing**: Separate service for handling media uploads
 
 #### Database Scaling
 - **Read Replicas**: For content database queries
-- **Sharding**: User data by geographic regions
-- **Caching**: Multi-layer caching strategy
-- **CDN**: For static content and media files
+- **User Sharding**: Telegram user ID-based sharding
+- **Conversation Archiving**: Move old conversations to cold storage
+- **Cache Strategy**: Multi-layer caching for frequent queries
 
-#### Load Balancing
-- **Geographic Load Balancing**: Route users to nearest data center
-- **Service-Level Load Balancing**: Distribute load across service instances
-- **Database Load Balancing**: Distribute read/write operations
+#### Telegram API Optimization
+- **Rate Limit Management**: Intelligent request throttling
+- **Batch Operations**: Group multiple API calls where possible
+- **Webhook Optimization**: Efficient webhook processing
+- **Media CDN**: Content delivery network for bot media files
 
 ### Performance Optimization
 

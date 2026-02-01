@@ -31,12 +31,12 @@ Create an intelligent, accessible, and user-friendly platform that guides citize
 - **FR2.4**: Eligibility criteria checker with personalized recommendations
 - **FR2.5**: Real-time updates on policy changes and new schemes
 
-#### FR3: Multi-Channel Access
-- **FR3.1**: WhatsApp Business API integration for messaging
-- **FR3.2**: IVR (Interactive Voice Response) system for phone-based access
-- **FR3.3**: Web-based chat interface
-- **FR3.4**: Mobile application (Android/iOS)
-- **FR3.5**: USSD integration for feature phone users
+#### FR3: Telegram Bot Platform
+- **FR3.1**: Telegram Bot API integration for messaging
+- **FR3.2**: Rich media support (images, documents, inline keyboards)
+- **FR3.3**: Voice message processing and response
+- **FR3.4**: File upload and document verification
+- **FR3.5**: Inline queries and quick reply buttons
 
 #### FR4: Personalization and User Management
 - **FR4.1**: User profile creation with demographic information
@@ -61,7 +61,7 @@ Create an intelligent, accessible, and user-friendly platform that guides citize
 
 3. **As a senior citizen**, I want to use voice commands to get information so that I don't need to type or read small text.
 
-4. **As a working professional**, I want to check my eligibility for government schemes via WhatsApp so that I can access information during my commute.
+4. **As a working professional**, I want to check my eligibility for government schemes via Telegram so that I can access information during my commute.
 
 5. **As a farmer**, I want to know about agricultural subsidies and schemes so that I can benefit from government programs.
 
@@ -119,9 +119,10 @@ Create an intelligent, accessible, and user-friendly platform that guides citize
 - **ML Framework**: TensorFlow or PyTorch for custom models
 
 ### Frontend Technologies
-- **Web**: React.js or Vue.js with responsive design
-- **Mobile**: React Native or Flutter for cross-platform development
-- **Voice Interface**: Twilio Voice API or Amazon Connect
+- **Telegram Bot**: Telegram Bot API with webhook integration
+- **Rich UI Components**: Inline keyboards, custom keyboards, and quick replies
+- **Media Handling**: Image, document, and voice message processing
+- **Admin Dashboard**: React.js for bot management and analytics
 
 ### Infrastructure
 - **Cloud Platform**: AWS, Google Cloud, or Microsoft Azure
@@ -132,10 +133,10 @@ Create an intelligent, accessible, and user-friendly platform that guides citize
 ## API and Integration Requirements
 
 ### External API Integrations
+- **Telegram Bot API**: Core messaging and media handling
 - **Government APIs**: DigiLocker, Aadhaar APIs, PAN APIs
-- **Communication APIs**: WhatsApp Business API, Twilio for SMS/Voice
-- **Payment APIs**: Razorpay, PayU, or government payment gateways
-- **Location APIs**: Google Maps for office locations and directions
+- **Payment APIs**: Telegram Payments, Razorpay, or government payment gateways
+- **Location APIs**: Telegram location sharing for office directions
 
 ### Internal API Design
 - **RESTful APIs**: For web and mobile applications
@@ -147,9 +148,9 @@ Create an intelligent, accessible, and user-friendly platform that guides citize
 
 ### User Engagement Metrics
 - Daily Active Users (DAU) and Monthly Active Users (MAU)
-- Session duration and conversation completion rate
+- Message response rate and conversation completion rate
 - User retention rate (7-day, 30-day)
-- Channel-wise usage distribution
+- Bot command usage patterns and inline query analytics
 
 ### Service Effectiveness Metrics
 - Query resolution rate (% of queries successfully answered)
