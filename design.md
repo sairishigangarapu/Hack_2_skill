@@ -4,26 +4,73 @@
 
 ### High-Level Architecture
 
-```
-┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
-│  Telegram Bot   │    │   API Gateway   │    │  Core Services  │
-│                 │    │                 │    │                 │
-│ • Bot Interface │◄──►│ • Rate Limiting │◄──►│ • AI Engine     │
-│ • Webhook       │    │ • Authentication│    │ • NLP Service   │
-│ • Media Handler │    │ • Load Balancer │    │ • TTS/STT       │
-│ • Inline Queries│    │ • API Routing   │    │ • Translation   │
-│ • Keyboards     │    │                 │    │                 │
-└─────────────────┘    └─────────────────┘    └─────────────────┘
-                                │
-                                ▼
-┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
-│  Data Services  │    │   Integration   │    │  Infrastructure │
-│                 │    │                 │    │                 │
-│ • User DB       │◄──►│ • Gov APIs      │◄──►│ • Kubernetes    │
-│ • Content DB    │    │ • Payment APIs  │    │ • Redis Cache   │
-│ • Analytics DB  │    │ • Notification  │    │ • Message Queue │
-│ • Search Index  │    │ • File Storage  │    │ • Monitoring    │
-└─────────────────┘    └─────────────────┘    └─────────────────┘
+```mermaid
+graph TB
+    subgraph "Telegram Bot Layer"
+        TB[Telegram Bot Interface]
+        WH[Webhook Handler]
+        MH[Media Handler]
+        IQ[Inline Queries]
+        KB[Keyboards Manager]
+    end
+    
+    subgraph "API Gateway"
+        RL[Rate Limiting]
+        AUTH[Authentication]
+        LB[Load Balancer]
+        AR[API Routing]
+    end
+    
+    subgraph "Core Services"
+        AI[AI Engine]
+        NLP[NLP Service]
+        TTS[TTS/STT Service]
+        TRANS[Translation Service]
+    end
+    
+    subgraph "Data Services"
+        UDB[(User Database)]
+        CDB[(Content Database)]
+        ADB[(Analytics Database)]
+        SI[Search Index]
+    end
+    
+    subgraph "Integration Layer"
+        GOV[Government APIs]
+        PAY[Payment APIs]
+        NOT[Notification Service]
+        FS[File Storage]
+    end
+    
+    subgraph "Infrastructure"
+        K8S[Kubernetes]
+        REDIS[Redis Cache]
+        MQ[Message Queue]
+        MON[Monitoring]
+    end
+    
+    TB --> WH
+    WH --> RL
+    RL --> AUTH
+    AUTH --> LB
+    LB --> AR
+    AR --> AI
+    AI --> NLP
+    AI --> TTS
+    AI --> TRANS
+    AI --> UDB
+    AI --> CDB
+    NLP --> SI
+    AR --> GOV
+    AR --> PAY
+    AI --> NOT
+    MH --> FS
+    
+    K8S --> AI
+    K8S --> NLP
+    REDIS --> AI
+    MQ --> AI
+    MON --> AI
 ```
 
 ### Microservices Architecture
@@ -70,92 +117,161 @@
 
 ### Bot Framework Structure
 
-```
-┌─────────────────────────────────────────────────────────────┐
-│                    Telegram Bot Layer                       │
-├─────────────────────────────────────────────────────────────┤
-│  Webhook Handler                                            │
-│  ┌─────────────┐ ┌─────────────┐ ┌─────────────┐          │
-│  │   Message   │ │  Callback   │ │   Inline    │          │
-│  │   Handler   │ │   Handler   │ │   Query     │          │
-│  └─────────────┘ └─────────────┘ └─────────────┘          │
-├─────────────────────────────────────────────────────────────┤
-│  Middleware Layer                                           │
-│  ┌─────────────┐ ┌─────────────┐ ┌─────────────┐          │
-│  │Session Mgmt │ │Rate Limiting│ │   Logging   │          │
-│  └─────────────┘ └─────────────┘ └─────────────┘          │
-├─────────────────────────────────────────────────────────────┤
-│  Scene Management                                           │
-│  ┌─────────────┐ ┌─────────────┐ ┌─────────────┐          │
-│  │Service Menu │ │Document Req │ │Eligibility  │          │
-│  │   Scene     │ │   Scene     │ │   Scene     │          │
-│  └─────────────┘ └─────────────┘ └─────────────┘          │
-├─────────────────────────────────────────────────────────────┤
-│  Response Builder                                           │
-│  ┌─────────────┐ ┌─────────────┐ ┌─────────────┐          │
-│  │Text Response│ │Media Builder│ │Keyboard Gen │          │
-│  └─────────────┘ └─────────────┘ └─────────────┘          │
-└─────────────────────────────────────────────────────────────┘
+### Bot Framework Structure
+
+```mermaid
+graph TB
+    subgraph "Telegram Bot Layer"
+        WH[Webhook Handler]
+        MH[Message Handler]
+        CH[Callback Handler]
+        IQH[Inline Query Handler]
+    end
+    
+    subgraph "Middleware Layer"
+        SM[Session Management]
+        RL[Rate Limiting]
+        LOG[Logging]
+        AUTH[Authentication]
+    end
+    
+    subgraph "Scene Management"
+        SMS[Service Menu Scene]
+        DRS[Document Request Scene]
+        ES[Eligibility Scene]
+        US[Upload Scene]
+    end
+    
+    subgraph "Response Builder"
+        TR[Text Response]
+        MB[Media Builder]
+        KG[Keyboard Generator]
+        TF[Template Formatter]
+    end
+    
+    WH --> MH
+    WH --> CH
+    WH --> IQH
+    
+    MH --> SM
+    CH --> SM
+    IQH --> SM
+    
+    SM --> RL
+    RL --> LOG
+    LOG --> AUTH
+    
+    AUTH --> SMS
+    AUTH --> DRS
+    AUTH --> ES
+    AUTH --> US
+    
+    SMS --> TR
+    DRS --> MB
+    ES --> KG
+    US --> TF
+    
+    TR --> WH
+    MB --> WH
+    KG --> WH
+    TF --> WH
 ```
 
 ### Conversation Flow Management
 
 #### State Machine Design
-```javascript
-// Bot conversation states
-const BotStates = {
-  INITIAL: 'initial',
-  LANGUAGE_SELECTION: 'language_selection',
-  SERVICE_CATEGORY: 'service_category',
-  SERVICE_DETAILS: 'service_details',
-  DOCUMENT_UPLOAD: 'document_upload',
-  ELIGIBILITY_CHECK: 'eligibility_check',
-  FEEDBACK: 'feedback'
-};
 
-// Scene transitions
-const sceneTransitions = {
-  [BotStates.INITIAL]: [BotStates.LANGUAGE_SELECTION],
-  [BotStates.LANGUAGE_SELECTION]: [BotStates.SERVICE_CATEGORY],
-  [BotStates.SERVICE_CATEGORY]: [BotStates.SERVICE_DETAILS, BotStates.ELIGIBILITY_CHECK],
-  // ... more transitions
-};
+```mermaid
+stateDiagram-v2
+    [*] --> INITIAL
+    INITIAL --> LANGUAGE_SELECTION: /start command
+    LANGUAGE_SELECTION --> SERVICE_CATEGORY: Language selected
+    SERVICE_CATEGORY --> SERVICE_DETAILS: Service selected
+    SERVICE_CATEGORY --> ELIGIBILITY_CHECK: Check eligibility
+    SERVICE_DETAILS --> DOCUMENT_UPLOAD: Upload documents
+    SERVICE_DETAILS --> ELIGIBILITY_CHECK: Check eligibility
+    DOCUMENT_UPLOAD --> SERVICE_DETAILS: Document processed
+    ELIGIBILITY_CHECK --> SERVICE_CATEGORY: Back to services
+    ELIGIBILITY_CHECK --> FEEDBACK: Provide feedback
+    SERVICE_DETAILS --> FEEDBACK: Rate service
+    FEEDBACK --> SERVICE_CATEGORY: Continue
+    FEEDBACK --> [*]: End conversation
+    
+    note right of INITIAL
+        Bot initialization
+        Welcome message
+    end note
+    
+    note right of LANGUAGE_SELECTION
+        User selects preferred
+        language from keyboard
+    end note
+    
+    note right of SERVICE_CATEGORY
+        Display service categories
+        with inline keyboards
+    end note
 ```
 
 ## Component Design
 
 ### AI Engine Architecture
 
-```
-┌─────────────────────────────────────────────────────────────┐
-│                    AI Conversation Engine                   │
-├─────────────────────────────────────────────────────────────┤
-│  Input Processing Layer                                     │
-│  ┌─────────────┐ ┌─────────────┐ ┌─────────────┐          │
-│  │   Text NLP  │ │ Voice STT   │ │ Image OCR   │          │
-│  └─────────────┘ └─────────────┘ └─────────────┘          │
-├─────────────────────────────────────────────────────────────┤
-│  Understanding Layer                                        │
-│  ┌─────────────┐ ┌─────────────┐ ┌─────────────┐          │
-│  │Intent Class.│ │Entity Extr. │ │Context Mgmt.│          │
-│  └─────────────┘ └─────────────┘ └─────────────┘          │
-├─────────────────────────────────────────────────────────────┤
-│  Knowledge Layer                                            │
-│  ┌─────────────┐ ┌─────────────┐ ┌─────────────┐          │
-│  │Gov Services │ │Eligibility  │ │Document DB  │          │
-│  │   Database  │ │   Engine    │ │             │          │
-│  └─────────────┘ └─────────────┘ └─────────────┘          │
-├─────────────────────────────────────────────────────────────┤
-│  Response Generation Layer                                  │
-│  ┌─────────────┐ ┌─────────────┐ ┌─────────────┐          │
-│  │Template Eng.│ │Personalize. │ │Multi-lang   │          │
-│  └─────────────┘ └─────────────┘ └─────────────┘          │
-├─────────────────────────────────────────────────────────────┤
-│  Output Processing Layer                                    │
-│  ┌─────────────┐ ┌─────────────┐ ┌─────────────┐          │
-│  │Text Format  │ │Voice TTS    │ │Rich Media   │          │
-│  └─────────────┘ └─────────────┘ └─────────────┘          │
-└─────────────────────────────────────────────────────────────┘
+### AI Engine Architecture
+
+```mermaid
+graph TB
+    subgraph "Input Processing Layer"
+        TEXT[Text NLP]
+        VOICE[Voice STT]
+        IMAGE[Image OCR]
+    end
+    
+    subgraph "Understanding Layer"
+        INTENT[Intent Classification]
+        ENTITY[Entity Extraction]
+        CONTEXT[Context Management]
+    end
+    
+    subgraph "Knowledge Layer"
+        GOVDB[(Government Services Database)]
+        ELIGIBILITY[Eligibility Engine]
+        DOCDB[(Document Database)]
+    end
+    
+    subgraph "Response Generation Layer"
+        TEMPLATE[Template Engine]
+        PERSONAL[Personalization]
+        MULTILANG[Multi-language Support]
+    end
+    
+    subgraph "Output Processing Layer"
+        TEXTFMT[Text Formatting]
+        VOICETTS[Voice TTS]
+        RICHMEDIA[Rich Media Builder]
+    end
+    
+    TEXT --> INTENT
+    VOICE --> INTENT
+    IMAGE --> INTENT
+    
+    INTENT --> ENTITY
+    ENTITY --> CONTEXT
+    
+    CONTEXT --> GOVDB
+    CONTEXT --> ELIGIBILITY
+    CONTEXT --> DOCDB
+    
+    GOVDB --> TEMPLATE
+    ELIGIBILITY --> TEMPLATE
+    DOCDB --> TEMPLATE
+    
+    TEMPLATE --> PERSONAL
+    PERSONAL --> MULTILANG
+    
+    MULTILANG --> TEXTFMT
+    MULTILANG --> VOICETTS
+    MULTILANG --> RICHMEDIA
 ```
 
 ### Data Architecture
@@ -245,6 +361,112 @@ CREATE TABLE messages (
   processing_time: "90 days",
   last_updated: ISODate()
 }
+```
+
+## User Journey and Experience Flow
+
+### Complete User Journey
+
+```mermaid
+flowchart TD
+    START([User Discovers Bot]) --> FIRST[First Interaction: /start]
+    FIRST --> WELCOME[Welcome Message & Language Selection]
+    
+    WELCOME --> LANG{Select Language}
+    LANG --> HINDI[हिंदी Selected]
+    LANG --> ENGLISH[English Selected]
+    LANG --> OTHER[Other Language Selected]
+    
+    HINDI --> MENU[Main Service Menu]
+    ENGLISH --> MENU
+    OTHER --> MENU
+    
+    MENU --> CHOICE{User Choice}
+    
+    CHOICE -->|Browse Services| BROWSE[Service Categories]
+    CHOICE -->|Check Eligibility| ELIGIBILITY[Eligibility Checker]
+    CHOICE -->|Ask Question| QUESTION[Free Text Query]
+    CHOICE -->|Upload Document| UPLOAD[Document Upload]
+    
+    BROWSE --> CATEGORY[Select Category]
+    CATEGORY --> SERVICE[Select Specific Service]
+    SERVICE --> DETAILS[Service Details & Requirements]
+    
+    ELIGIBILITY --> FORM[Eligibility Form]
+    FORM --> RESULT[Eligibility Result]
+    RESULT --> RECOMMEND[Service Recommendations]
+    
+    QUESTION --> NLP[Process Natural Language]
+    NLP --> UNDERSTAND[Intent Recognition]
+    UNDERSTAND --> ANSWER[Generate Answer]
+    
+    UPLOAD --> VERIFY[Document Verification]
+    VERIFY --> FEEDBACK[Verification Feedback]
+    
+    DETAILS --> ACTION{Next Action}
+    RECOMMEND --> ACTION
+    ANSWER --> ACTION
+    FEEDBACK --> ACTION
+    
+    ACTION -->|Apply Now| APPLY[Application Process]
+    ACTION -->|More Info| INFO[Additional Information]
+    ACTION -->|Find Office| LOCATION[Office Locator]
+    ACTION -->|Ask More| MENU
+    ACTION -->|End| END([Session End])
+    
+    APPLY --> TRACK[Application Tracking]
+    INFO --> MENU
+    LOCATION --> MENU
+    TRACK --> END
+```
+
+### Service Discovery Flow
+
+```mermaid
+flowchart LR
+    subgraph "Discovery Methods"
+        BROWSE[Browse Categories]
+        SEARCH[Search Query]
+        VOICE[Voice Command]
+        RECOMMEND[AI Recommendation]
+    end
+    
+    subgraph "Service Categories"
+        IDENTITY[Identity Documents]
+        HOUSING[Housing & Property]
+        FINANCE[Financial Services]
+        AGRICULTURE[Agriculture & Rural]
+        SOCIAL[Social Welfare]
+        EDUCATION[Education]
+    end
+    
+    subgraph "Service Details"
+        REQUIREMENTS[Requirements]
+        PROCESS[Step-by-step Process]
+        DOCUMENTS[Document Checklist]
+        FEES[Fees & Timeline]
+        OFFICES[Office Locations]
+    end
+    
+    BROWSE --> IDENTITY
+    BROWSE --> HOUSING
+    BROWSE --> FINANCE
+    BROWSE --> AGRICULTURE
+    BROWSE --> SOCIAL
+    BROWSE --> EDUCATION
+    
+    SEARCH --> IDENTITY
+    VOICE --> IDENTITY
+    RECOMMEND --> IDENTITY
+    
+    IDENTITY --> REQUIREMENTS
+    HOUSING --> REQUIREMENTS
+    FINANCE --> REQUIREMENTS
+    
+    REQUIREMENTS --> PROCESS
+    PROCESS --> DOCUMENTS
+    DOCUMENTS --> FEES
+    FEES --> OFFICES
 ```
 
 ## User Interface/Experience Design
@@ -343,35 +565,105 @@ Context Update → Analytics Logging → Conversation Continuation
 
 ### Telegram Bot Processing Flow
 
-```
-┌─────────────┐    ┌─────────────┐    ┌─────────────┐
-│Telegram     │───►│Webhook      │───►│Message      │
-│Message      │    │Handler      │    │Parser       │
-└─────────────┘    └─────────────┘    └─────────────┘
-                                           │
-┌─────────────┐    ┌─────────────┐    ┌─────────────┐
-│Bot Response │◄───│Response     │◄───│AI Processing│
-│(Telegram API)│    │Formatter    │    │Engine       │
-└─────────────┘    └─────────────┘    └─────────────┘
-       │
-┌─────────────┐    ┌─────────────┐    ┌─────────────┐
-│User Gets    │───►│Analytics &  │───►│State        │
-│Response     │    │Logging      │    │Management   │
-└─────────────┘    └─────────────┘    └─────────────┘
+```mermaid
+flowchart TD
+    A[Telegram Message] --> B[Webhook Handler]
+    B --> C[Message Parser]
+    C --> D{Message Type?}
+    
+    D -->|Text| E[Text Processor]
+    D -->|Voice| F[Voice Processor]
+    D -->|Photo| G[Image Processor]
+    D -->|Document| H[Document Processor]
+    
+    E --> I[Language Detection]
+    F --> J[Speech-to-Text]
+    G --> K[OCR Processing]
+    H --> L[File Analysis]
+    
+    I --> M[Intent Recognition]
+    J --> M
+    K --> M
+    L --> M
+    
+    M --> N[Context Analysis]
+    N --> O[AI Processing Engine]
+    O --> P[Knowledge Retrieval]
+    P --> Q[Response Generation]
+    
+    Q --> R{Response Type?}
+    R -->|Text| S[Text Formatter]
+    R -->|Voice| T[Text-to-Speech]
+    R -->|Media| U[Media Builder]
+    R -->|Keyboard| V[Keyboard Generator]
+    
+    S --> W[Bot Response via Telegram API]
+    T --> W
+    U --> W
+    V --> W
+    
+    W --> X[User Receives Response]
+    X --> Y[Analytics & Logging]
+    Y --> Z[State Management Update]
+    
+    Z --> AA{Continue Conversation?}
+    AA -->|Yes| A
+    AA -->|No| BB[End Session]
 ```
 
 ### Integration Data Flow
 
-```
-┌─────────────┐    ┌─────────────┐    ┌─────────────┐
-│Government   │───►│Data         │───►│Content      │
-│APIs         │    │Synchronizer │    │Database     │
-└─────────────┘    └─────────────┘    └─────────────┘
-                                           │
-┌─────────────┐    ┌─────────────┐    ┌─────────────┐
-│User Query   │◄───│AI Engine    │◄───│Updated      │
-│Response     │    │             │    │Content      │
-└─────────────┘    └─────────────┘    └─────────────┘
+```mermaid
+flowchart LR
+    subgraph "External Sources"
+        GOV[Government APIs]
+        POLICY[Policy Updates]
+        SCHEMES[Scheme Database]
+    end
+    
+    subgraph "Data Processing"
+        DS[Data Synchronizer]
+        VAL[Data Validator]
+        TRANS[Data Transformer]
+    end
+    
+    subgraph "Internal Storage"
+        CDB[(Content Database)]
+        CACHE[Redis Cache]
+        SEARCH[Search Index]
+    end
+    
+    subgraph "Bot Processing"
+        AI[AI Engine]
+        NLP[NLP Service]
+        RESP[Response Generator]
+    end
+    
+    subgraph "User Interface"
+        BOT[Telegram Bot]
+        USER[User]
+    end
+    
+    GOV --> DS
+    POLICY --> DS
+    SCHEMES --> DS
+    
+    DS --> VAL
+    VAL --> TRANS
+    TRANS --> CDB
+    TRANS --> CACHE
+    TRANS --> SEARCH
+    
+    USER --> BOT
+    BOT --> AI
+    AI --> NLP
+    NLP --> CDB
+    CDB --> RESP
+    CACHE --> RESP
+    SEARCH --> RESP
+    
+    RESP --> BOT
+    BOT --> USER
 ```
 
 ## Technology Choices and Justification
@@ -534,13 +826,40 @@ Context Update → Analytics Logging → Conversation Continuation
 ### Performance Optimization
 
 #### Caching Strategy
-```
-┌─────────────┐    ┌─────────────┐    ┌─────────────┐
-│Browser      │    │CDN          │    │Application  │
-│Cache        │    │Cache        │    │Cache (Redis)│
-│(Static)     │    │(Static +    │    │(Dynamic)    │
-│             │    │ Dynamic)    │    │             │
-└─────────────┘    └─────────────┘    └─────────────┘
+
+```mermaid
+flowchart TD
+    USER[User Request] --> BC{Browser Cache?}
+    BC -->|Hit| BR[Return Cached Response]
+    BC -->|Miss| CDN{CDN Cache?}
+    
+    CDN -->|Hit| CR[Return CDN Response]
+    CDN -->|Miss| REDIS{Redis Cache?}
+    
+    REDIS -->|Hit| RR[Return Redis Response]
+    REDIS -->|Miss| DB[(Database)]
+    
+    DB --> REDIS
+    REDIS --> CDN
+    CDN --> BC
+    BC --> USER
+    
+    subgraph "Cache Layers"
+        BC
+        CDN
+        REDIS
+        DB
+    end
+    
+    subgraph "Cache Types"
+        STATIC[Static Content<br/>Images, Documents]
+        DYNAMIC[Dynamic Content<br/>Service Info, Responses]
+        SESSION[Session Data<br/>User State, Preferences]
+    end
+    
+    CDN -.-> STATIC
+    REDIS -.-> DYNAMIC
+    REDIS -.-> SESSION
 ```
 
 #### Database Optimization
@@ -568,11 +887,34 @@ Context Update → Analytics Logging → Conversation Continuation
 ### Security Architecture
 
 #### Authentication and Authorization
-```
-┌─────────────┐    ┌─────────────┐    ┌─────────────┐
-│Multi-Factor │───►│JWT Token    │───►│Role-Based   │
-│Authentication│    │Management   │    │Access Control│
-└─────────────┘    └─────────────┘    └─────────────┘
+
+```mermaid
+flowchart TD
+    USER[User Message] --> TG[Telegram Verification]
+    TG --> VALID{Valid Telegram User?}
+    
+    VALID -->|No| REJECT[Reject Request]
+    VALID -->|Yes| CHECK[Check User Registration]
+    
+    CHECK --> REG{Registered User?}
+    REG -->|No| SIGNUP[Auto-Register User]
+    REG -->|Yes| AUTH[Authenticate User]
+    
+    SIGNUP --> PROFILE[Create User Profile]
+    PROFILE --> TOKEN[Generate JWT Token]
+    
+    AUTH --> TOKEN
+    TOKEN --> RBAC[Role-Based Access Control]
+    
+    RBAC --> PERM{Has Permission?}
+    PERM -->|No| DENY[Access Denied]
+    PERM -->|Yes| ALLOW[Allow Access]
+    
+    ALLOW --> SERVICE[Process Request]
+    SERVICE --> RESPONSE[Send Response]
+    
+    REJECT --> ERROR[Error Response]
+    DENY --> ERROR
 ```
 
 #### API Security
