@@ -22,10 +22,11 @@ graph TB
     end
     
     subgraph "Core Services"
-        AI[AI Engine]
-        NLP[NLP Service]
-        TTS[TTS/STT Service]
-        TRANS[Translation Service]
+        AI[AI Engine on SageMaker]
+        LEX[Amazon Lex NLP]
+        TRANSCRIBE[Amazon Transcribe]
+        POLLY[Amazon Polly]
+        TRANSLATE[Amazon Translate]
     end
     
     subgraph "Data Services"
@@ -38,15 +39,19 @@ graph TB
     subgraph "Integration Layer"
         GOV[Government APIs]
         SCHEME[Scheme Information APIs]
-        NOT[Notification Service]
-        FS[File Storage]
+        COMPREHEND[Amazon Comprehend]
+        REKOGNITION[Amazon Rekognition]
+        LOCATION[AWS Location Service]
     end
     
-    subgraph "Infrastructure"
-        K8S[Kubernetes]
-        REDIS[Redis Cache]
-        MQ[Message Queue]
-        MON[Monitoring]
+    subgraph "AWS Cloud Infrastructure"
+        ECS[Amazon ECS/Fargate]
+        RDS[Amazon RDS]
+        REDIS[Amazon ElastiCache]
+        SQS[Amazon SQS]
+        LAMBDA[AWS Lambda]
+        S3[Amazon S3]
+        CW[CloudWatch]
     end
     
     TB --> WH
@@ -55,63 +60,64 @@ graph TB
     AUTH --> LB
     LB --> AR
     AR --> AI
-    AI --> NLP
-    AI --> TTS
-    AI --> TRANS
+    AI --> LEX
+    AI --> TRANSCRIBE
+    AI --> POLLY
+    AI --> TRANSLATE
     AI --> UDB
     AI --> CDB
-    NLP --> SI
+    LEX --> SI
     AR --> GOV
     AR --> SCHEME
-    AI --> NOT
-    MH --> FS
+    AI --> COMPREHEND
+    MH --> S3
     
-    K8S --> AI
-    K8S --> NLP
+    ECS --> AI
+    ECS --> LEX
     REDIS --> AI
-    MQ --> AI
-    MON --> AI
+    SQS --> AI
+    CW --> AI
 ```
 
 ### Microservices Architecture
 
 #### Core Services
 1. **Telegram Bot Service**
-   - Webhook handling for incoming messages
-   - Message parsing and routing
-   - Rich media processing (photos, documents, voice)
+   - AWS API Gateway webhook handling for incoming messages
+   - AWS Lambda functions for message parsing and routing
+   - Amazon S3 for rich media processing (photos, documents, voice)
    - Inline keyboard and quick reply management
-   - Bot command processing
+   - Bot command processing with serverless architecture
 
 2. **AI Conversation Service**
-   - Natural language understanding
-   - Intent recognition and entity extraction
-   - Context management and conversation flow
-   - Response generation and formatting
+   - Amazon Lex for natural language understanding
+   - Amazon SageMaker for custom intent recognition models
+   - Context management using Amazon ElastiCache
+   - Response generation with AWS Lambda functions
 
 3. **Multilingual Processing Service**
-   - Language detection from user messages
-   - Translation services
-   - Localized content management
-   - Cultural context adaptation
+   - Amazon Comprehend for language detection
+   - Amazon Translate for real-time translation services
+   - Localized content management in Amazon DocumentDB
+   - Cultural context adaptation using ML models
 
 4. **Voice Processing Service**
-   - Voice message transcription
-   - Text-to-speech for voice responses
-   - Audio quality optimization
-   - Voice command recognition
+   - Amazon Transcribe for voice message transcription
+   - Amazon Polly for text-to-speech responses
+   - Audio quality optimization with AWS media services
+   - Voice command recognition using custom SageMaker models
 
 5. **Content Management Service**
-   - Government service information
-   - Document requirements database
-   - Eligibility criteria engine
-   - Policy update management
+   - Government service information in Amazon RDS
+   - Document requirements database with high availability
+   - Eligibility criteria engine powered by AWS Lambda
+   - Real-time policy updates using Amazon EventBridge
 
 6. **User Management Service**
-   - Telegram user authentication
-   - Profile management and preferences
-   - Session state management
-   - User analytics and tracking
+   - Telegram user authentication with AWS Cognito
+   - Session state management in Amazon ElastiCache
+   - User analytics with Amazon Kinesis Data Analytics
+   - Automated session cleanup using AWS Lambda
 
 ## Telegram Bot Architecture
 
@@ -274,7 +280,7 @@ graph TB
 
 #### Database Design
 
-**User Database (PostgreSQL)**
+**User Database (Amazon RDS - PostgreSQL)**
 ```sql
 -- Users table (Telegram-specific, minimal data)
 CREATE TABLE users (
@@ -287,7 +293,7 @@ CREATE TABLE users (
     last_active TIMESTAMP
 );
 
--- Conversations table (temporary, auto-cleanup)
+-- Conversations table (temporary, auto-cleanup via AWS Lambda)
 CREATE TABLE conversations (
     conversation_id UUID PRIMARY KEY,
     telegram_user_id BIGINT REFERENCES users(user_id),
@@ -311,7 +317,7 @@ CREATE TABLE messages (
 );
 ```
 
-**Content Database (MongoDB)**
+**Content Database (Amazon DocumentDB)**
 ```javascript
 // Government Services Collection
 {
@@ -668,32 +674,75 @@ flowchart LR
     BOT --> USER
 ```
 
+## Why AWS for AI Civic Helpdesk
+
+### AWS Advantages for Government Solutions
+
+**🏛️ Government-Ready Infrastructure**
+- AWS GovCloud compliance for sensitive government integrations
+- FISMA, FedRAMP, and SOC compliance out of the box
+- Data residency options for Indian government requirements
+- Proven track record with government agencies worldwide
+
+**🚀 AI/ML Excellence**
+- Comprehensive AI services ecosystem (Lex, Comprehend, Transcribe, Polly)
+- Pre-trained models optimized for Indian languages and contexts
+- SageMaker for custom model development and deployment
+- Cost-effective pay-as-you-use pricing for AI services
+
+**⚡ Serverless Scalability**
+- AWS Lambda for automatic scaling from 0 to millions of requests
+- No infrastructure management overhead
+- Pay only for actual usage, perfect for government budget constraints
+- Built-in high availability across multiple availability zones
+
+**🔒 Enterprise Security**
+- End-to-end encryption with AWS KMS
+- VPC isolation for secure government data handling
+- AWS WAF and Shield for DDoS protection
+- Comprehensive audit trails with CloudTrail
+
+**💰 Cost Optimization**
+- Reserved instance pricing for predictable workloads
+- Spot instances for batch processing tasks
+- AWS Cost Explorer for continuous cost monitoring
+- Free tier benefits for development and testing
+
 ## Technology Choices and Justification
 
-### Telegram Bot Technology Stack
+### AWS-Powered Technology Stack
 
-#### Node.js with Telegraf.js Framework
+#### Node.js with Telegraf.js on AWS Lambda
 **Justification:**
-- Telegraf.js is the most popular and well-maintained Telegram bot framework
-- Excellent middleware support for session management and scene handling
-- Built-in support for inline keyboards, webhooks, and file handling
+- Telegraf.js framework optimized for serverless deployment on AWS Lambda
+- Excellent cost efficiency with pay-per-request pricing model
+- Automatic scaling handled by AWS infrastructure
+- Built-in integration with AWS services like API Gateway and S3
 - Strong TypeScript support for better development experience
-- Active community and comprehensive documentation
 
-#### Telegram Bot API Integration
+#### Amazon Lex for Conversational AI
 **Justification:**
-- Native support for rich media (photos, documents, voice messages)
-- Inline keyboards and custom keyboards for better UX
-- Built-in payment processing capabilities
-- File upload/download with automatic handling
-- Webhook support for real-time message processing
+- Native AWS service with seamless integration across the stack
+- Built-in support for multiple languages including Indian languages
+- Advanced NLP capabilities with automatic speech recognition
+- Cost-effective pricing with no upfront costs
+- Easy integration with Amazon Polly and Transcribe
 
-#### Redis for Session Management
+#### Amazon RDS + DocumentDB Hybrid
 **Justification:**
+- Amazon RDS (PostgreSQL) for structured user data with high availability
+- Amazon DocumentDB for flexible content management and conversation logs
+- Both services offer excellent scalability and reliability
+- Built-in backup and disaster recovery capabilities
+- Strong JSON support for multilingual content
+
+#### Amazon ElastiCache for Session Management
+**Justification:**
+- Fully managed Redis service with sub-millisecond latency
 - Perfect for managing bot conversation states
-- Fast session storage for multi-step conversations
-- Built-in expiration for temporary data
-- Excellent integration with Telegraf.js sessions
+- Built-in high availability and automatic failover
+- Excellent integration with AWS Lambda functions
+- Cost-effective with reserved instance pricing
 
 #### PostgreSQL + MongoDB Hybrid
 **Justification:**
@@ -750,57 +799,58 @@ flowchart LR
 
 ## Implementation Approach
 
-### Phase 1: Telegram Bot MVP (4-6 weeks)
+### Phase 1: AWS-Powered MVP (4-6 weeks)
 **Core Features:**
-- Basic Telegram bot with command handling
-- Text-based conversations in English and Hindi
-- Essential government services database (top 10 services)
+- Serverless Telegram bot using AWS Lambda and API Gateway
+- Amazon Lex integration for basic conversations in English and Hindi
+- Essential government services database in Amazon RDS
 - Inline keyboards for service navigation
-- Basic user state management
+- Session management with Amazon ElastiCache
 
 **Technical Implementation:**
-- Set up Telegraf.js bot framework
-- Implement webhook handling
-- Create basic conversation flows
-- Set up PostgreSQL database
-- Deploy on cloud with webhook endpoint
+- Set up AWS Lambda functions with Telegraf.js
+- Configure API Gateway for webhook handling
+- Deploy Amazon Lex bot with basic intents
+- Set up Amazon RDS PostgreSQL database
+- Implement CloudWatch monitoring and logging
 
-### Phase 2: Enhanced Bot Features (6-8 weeks)
+### Phase 2: Enhanced AWS AI Features (6-8 weeks)
 **Additional Features:**
-- Voice message processing
-- 5 additional Indian languages
-- Rich media responses (images, documents)
-- File upload for document verification
-- Advanced inline keyboards and quick replies
+- Amazon Transcribe for voice message processing
+- Amazon Polly for text-to-speech responses
+- Amazon Translate for 5 additional Indian languages
+- Amazon S3 for rich media storage and processing
+- Advanced conversation flows with Amazon Lex
 
 **Technical Implementation:**
-- Integrate speech processing services
-- Implement file handling capabilities
-- Create rich response templates
-- Add multilingual content management
-- Enhanced conversation state management
+- Integrate Amazon Transcribe and Polly services
+- Implement multi-language support with Amazon Translate
+- Set up S3 buckets for media file handling
+- Create advanced Lex intents and slot types
+- Enhanced session state management
 
-### Phase 3: Advanced Integration (8-10 weeks)
+### Phase 3: Advanced AWS Integration (8-10 weeks)
 **Advanced Features:**
-- Government API integrations
-- Document verification through photos
-- Fee and scheme information system
-- Advanced analytics dashboard for administrators
+- Amazon Rekognition for document verification
+- Amazon Comprehend for sentiment analysis
+- Government API integrations via AWS API Gateway
+- Advanced analytics with Amazon Kinesis
+- Admin dashboard on AWS Amplify
 
 **Technical Implementation:**
-- Complex third-party API integrations
-- Image processing for document verification
-- Comprehensive scheme database
-- Analytics and monitoring dashboard
-- Advanced security measures
+- Complex third-party API integrations through API Gateway
+- Image processing pipeline with Rekognition
+- Real-time analytics with Kinesis Data Analytics
+- React.js dashboard deployment on Amplify
+- Advanced security with AWS WAF and Shield
 
-### Phase 4: Scale and Optimize (4-6 weeks)
+### Phase 4: Scale and Optimize on AWS (4-6 weeks)
 **Optimization:**
-- Performance tuning for high message volume
-- Advanced caching strategies
-- Load testing with multiple concurrent users
-- Security hardening
-- User feedback integration and bot improvements
+- Performance tuning with AWS X-Ray distributed tracing
+- Advanced caching strategies with CloudFront CDN
+- Load testing using AWS Load Testing solution
+- Security hardening with AWS Security Hub
+- Cost optimization using AWS Cost Explorer
 
 ## Scalability Considerations
 

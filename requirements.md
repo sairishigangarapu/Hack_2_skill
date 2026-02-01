@@ -108,35 +108,35 @@ Create an intelligent, accessible, and user-friendly platform that guides citize
 
 ### Backend Technologies
 - **Framework**: Node.js with Express.js or Python with FastAPI
-- **Database**: PostgreSQL for structured data, MongoDB for conversation logs
-- **Cache**: Redis for session management and frequent queries
-- **Message Queue**: Apache Kafka or RabbitMQ for async processing
+- **Database**: Amazon RDS (PostgreSQL) for structured data, Amazon DocumentDB for conversation logs
+- **Cache**: Amazon ElastiCache (Redis) for session management and frequent queries
+- **Message Queue**: Amazon SQS for async processing and AWS Lambda for serverless functions
 
 ### AI/ML Technologies
-- **NLP Engine**: Google Dialogflow, Microsoft Bot Framework, or Rasa
-- **Speech Processing**: Google Speech-to-Text/Text-to-Speech APIs
-- **Language Translation**: Google Translate API or Microsoft Translator
-- **ML Framework**: TensorFlow or PyTorch for custom models
+- **NLP Engine**: Amazon Lex for conversational AI, with custom models on Amazon SageMaker
+- **Speech Processing**: Amazon Transcribe for speech-to-text and Amazon Polly for text-to-speech
+- **Language Translation**: Amazon Translate for multilingual support
+- **ML Framework**: Amazon SageMaker for training and deploying custom models
 
 ### Frontend Technologies
-- **Telegram Bot**: Telegram Bot API with webhook integration
+- **Telegram Bot**: Telegram Bot API with AWS API Gateway for webhook integration
 - **Rich UI Components**: Inline keyboards, custom keyboards, and quick replies
-- **Media Handling**: Image, document, and voice message processing
-- **Admin Dashboard**: React.js for bot management and analytics
+- **Media Handling**: Amazon S3 for file storage and AWS Lambda for processing
+- **Admin Dashboard**: React.js hosted on AWS Amplify for bot management and analytics
 
 ### Infrastructure
-- **Cloud Platform**: AWS, Google Cloud, or Microsoft Azure
-- **Containerization**: Docker with Kubernetes orchestration
-- **API Gateway**: Kong or AWS API Gateway
-- **Monitoring**: Prometheus, Grafana, and ELK stack
+- **Cloud Platform**: AWS (Amazon Web Services) with multi-region deployment
+- **Containerization**: Amazon ECS with AWS Fargate for serverless containers
+- **API Gateway**: AWS API Gateway for secure and scalable API management
+- **Monitoring**: Amazon CloudWatch, AWS X-Ray for distributed tracing
 
 ## API and Integration Requirements
 
 ### External API Integrations
 - **Telegram Bot API**: Core messaging and media handling
 - **Government APIs**: DigiLocker, Aadhaar APIs, PAN APIs
-- **Location APIs**: Telegram location sharing for office directions
-- **Scheme Information APIs**: Government scheme and subsidy databases
+- **AWS Services**: Amazon Comprehend for sentiment analysis, Amazon Rekognition for document verification
+- **Location APIs**: Telegram location sharing integrated with AWS Location Service
 
 ### Internal API Design
 - **RESTful APIs**: For web and mobile applications
