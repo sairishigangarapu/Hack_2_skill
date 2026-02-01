@@ -18,39 +18,39 @@ Create an intelligent, accessible, and user-friendly platform that guides citize
 ### Core Features
 
 #### FR1: Multilingual Conversational AI
-- **FR1.1**: Support for 10+ Indian languages (Hindi, English, Tamil, Telugu, Bengali, Marathi, Gujarati, Kannada, Malayalam, Punjabi, Odia)
-- **FR1.2**: Text-based chat interface with natural language processing
-- **FR1.3**: Voice input and output capabilities with speech-to-text and text-to-speech
-- **FR1.4**: Context-aware conversations with memory of previous interactions
-- **FR1.5**: Ability to switch languages mid-conversation
+- **FR1.1**: Support for 10+ Indian languages (Hindi, English, Tamil, Telugu, Bengali, Marathi, Gujarati, Kannada, Malayalam, Punjabi, Odia) using Amazon Translate
+- **FR1.2**: Text-based chat interface with natural language processing powered by Amazon Lex
+- **FR1.3**: Voice input and output capabilities using Amazon Transcribe and Amazon Polly
+- **FR1.4**: Context-aware conversations with memory managed through Amazon ElastiCache
+- **FR1.5**: Ability to switch languages mid-conversation with real-time translation
 
 #### FR2: Government Service Information System
-- **FR2.1**: Comprehensive database of government services and schemes
-- **FR2.2**: Step-by-step process guides for document applications
-- **FR2.3**: Document requirement checklists for each service
-- **FR2.4**: Eligibility criteria checker with personalized recommendations
-- **FR2.5**: Real-time updates on policy changes and new schemes
+- **FR2.1**: Comprehensive database of government services and schemes stored in Amazon RDS
+- **FR2.2**: Step-by-step process guides with intelligent retrieval using Amazon Comprehend
+- **FR2.3**: Document requirement checklists with automated verification via Amazon Rekognition
+- **FR2.4**: Eligibility criteria checker with personalized recommendations using AWS Lambda functions
+- **FR2.5**: Real-time updates on policy changes through Amazon EventBridge integration
 
 #### FR3: Telegram Bot Platform
-- **FR3.1**: Telegram Bot API integration for messaging
-- **FR3.2**: Rich media support (images, documents, inline keyboards)
-- **FR3.3**: Voice message processing and response
-- **FR3.4**: File upload and document verification
-- **FR3.5**: Inline queries and quick reply buttons
+- **FR3.1**: Telegram Bot API integration with AWS API Gateway for scalable webhook handling
+- **FR3.2**: Rich media support (images, documents, inline keyboards) with Amazon S3 storage
+- **FR3.3**: Voice message processing using Amazon Transcribe with automatic transcription
+- **FR3.4**: File upload and document verification powered by Amazon Rekognition
+- **FR3.5**: Inline queries and quick reply buttons with serverless AWS Lambda processing
 
 #### FR4: Personalization and User Management
-- **FR4.1**: User profile creation with demographic information
-- **FR4.2**: Personalized service recommendations based on user profile
-- **FR4.3**: Application tracking and status updates
-- **FR4.4**: Reminder system for document renewals and deadlines
-- **FR4.5**: Favorite services and quick access menu
+- **FR4.1**: User profile creation with demographic information stored securely in Amazon RDS
+- **FR4.2**: Personalized service recommendations using Amazon SageMaker ML models
+- **FR4.3**: Session tracking and state management through Amazon ElastiCache
+- **FR4.4**: Reminder system for document renewals using Amazon EventBridge scheduling
+- **FR4.5**: Favorite services and quick access menu with AWS Lambda-powered customization
 
 #### FR5: Integration and Connectivity
-- **FR5.1**: Integration with government portals (DigiLocker, MyGov, etc.)
-- **FR5.2**: Real-time status checking for applications
-- **FR5.3**: Document verification assistance
-- **FR5.4**: Appointment booking for government offices
-- **FR5.5**: Payment scheme information and fee calculation
+- **FR5.1**: Integration with government portals (DigiLocker, MyGov, etc.) through AWS API Gateway
+- **FR5.2**: Real-time status checking for applications using AWS Lambda functions
+- **FR5.3**: Document verification assistance powered by Amazon Rekognition AI
+- **FR5.4**: Office location services integrated with AWS Location Service
+- **FR5.5**: Payment scheme information and fee calculation with Amazon DynamoDB storage
 
 ### User Stories
 
