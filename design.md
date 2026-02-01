@@ -674,8 +674,6 @@ flowchart LR
     BOT --> USER
 ```
 
-## Why AWS for AI Civic Helpdesk
-
 ### AWS Advantages for Government Solutions
 
 **🏛️ Government-Ready Infrastructure**
