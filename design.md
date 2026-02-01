@@ -117,8 +117,6 @@ graph TB
 
 ### Bot Framework Structure
 
-### Bot Framework Structure
-
 ```mermaid
 graph TB
     subgraph "Telegram Bot Layer"
@@ -214,8 +212,6 @@ stateDiagram-v2
 ```
 
 ## Component Design
-
-### AI Engine Architecture
 
 ### AI Engine Architecture
 
