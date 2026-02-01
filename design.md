@@ -2,7 +2,7 @@
 
 ## Overview
 
-The Government Scheme Access Assistant is a privacy-first Telegram bot that democratizes access to government welfare schemes for India's underserved populations. The system employs a microservices architecture with local document processing, intelligent eligibility matching, and multi-lingual support to guide users through scheme discovery and application processes.
+The Government Scheme Access Assistant is a privacy-first Telegram bot that democratizes access to government welfare schemes for India's hardworking populations. The system employs a microservices architecture with local document processing, intelligent eligibility matching, and multi-lingual support to guide users through scheme discovery and application processes.
 
 The design prioritizes data privacy, regulatory compliance, and accessibility while maintaining high performance and scalability. The bot processes user documents locally, extracts relevant information for scheme matching, and provides personalized recommendations with step-by-step application guidance.
 
