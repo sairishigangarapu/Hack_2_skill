@@ -674,8 +674,6 @@ flowchart LR
     BOT --> USER
 ```
 
-## Why AWS for AI Civic Helpdesk
-
 ### AWS Advantages for Government Solutions
 
 **🏛️ Government-Ready Infrastructure**
@@ -799,7 +797,7 @@ flowchart LR
 
 ## Implementation Approach
 
-### Phase 1: AWS-Powered MVP (4-6 weeks)
+### Phase 1: AWS-Powered MVP
 **Core Features:**
 - Serverless Telegram bot using AWS Lambda and API Gateway
 - Amazon Lex integration for basic conversations in English and Hindi
@@ -814,7 +812,7 @@ flowchart LR
 - Set up Amazon RDS PostgreSQL database
 - Implement CloudWatch monitoring and logging
 
-### Phase 2: Enhanced AWS AI Features (6-8 weeks)
+### Phase 2: Enhanced AWS AI Features
 **Additional Features:**
 - Amazon Transcribe for voice message processing
 - Amazon Polly for text-to-speech responses
@@ -829,7 +827,7 @@ flowchart LR
 - Create advanced Lex intents and slot types
 - Enhanced session state management
 
-### Phase 3: Advanced AWS Integration (8-10 weeks)
+### Phase 3: Advanced AWS Integration
 **Advanced Features:**
 - Amazon Rekognition for document verification
 - Amazon Comprehend for sentiment analysis
@@ -844,7 +842,7 @@ flowchart LR
 - React.js dashboard deployment on Amplify
 - Advanced security with AWS WAF and Shield
 
-### Phase 4: Scale and Optimize on AWS (4-6 weeks)
+### Phase 4: Scale and Optimize on AWS
 **Optimization:**
 - Performance tuning with AWS X-Ray distributed tracing
 - Advanced caching strategies with CloudFront CDN
