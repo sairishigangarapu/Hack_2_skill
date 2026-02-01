@@ -50,7 +50,7 @@ Create an intelligent, accessible, and user-friendly platform that guides citize
 - **FR5.2**: Real-time status checking for applications
 - **FR5.3**: Document verification assistance
 - **FR5.4**: Appointment booking for government offices
-- **FR5.5**: Fee calculation and payment gateway integration
+- **FR5.5**: Payment scheme information and fee calculation
 
 ### User Stories
 
@@ -87,10 +87,10 @@ Create an intelligent, accessible, and user-friendly platform that guides citize
 
 ### Security Requirements
 - **NFR10**: End-to-end encryption for all communications
-- **NFR11**: GDPR and Indian data protection compliance
+- **NFR11**: No personal data storage - privacy by design
 - **NFR12**: Secure API authentication and authorization
 - **NFR13**: Regular security audits and vulnerability assessments
-- **NFR14**: Data anonymization for analytics
+- **NFR14**: Session data anonymization and automatic cleanup
 
 ### Usability Requirements
 - **NFR15**: Intuitive interface requiring no technical training
@@ -135,8 +135,8 @@ Create an intelligent, accessible, and user-friendly platform that guides citize
 ### External API Integrations
 - **Telegram Bot API**: Core messaging and media handling
 - **Government APIs**: DigiLocker, Aadhaar APIs, PAN APIs
-- **Payment APIs**: Telegram Payments, Razorpay, or government payment gateways
 - **Location APIs**: Telegram location sharing for office directions
+- **Scheme Information APIs**: Government scheme and subsidy databases
 
 ### Internal API Design
 - **RESTful APIs**: For web and mobile applications
@@ -173,10 +173,10 @@ Create an intelligent, accessible, and user-friendly platform that guides citize
 ## Compliance and Regulatory Requirements
 
 ### Data Protection
-- Compliance with Personal Data Protection Bill (when enacted)
-- GDPR compliance for international users
-- Data localization requirements
-- User consent management
+- No personal data storage policy
+- Session-only data handling with automatic cleanup
+- Anonymous usage analytics only
+- User consent for temporary session data
 
 ### Government Standards
 - Adherence to Digital India guidelines

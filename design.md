@@ -37,7 +37,7 @@ graph TB
     
     subgraph "Integration Layer"
         GOV[Government APIs]
-        PAY[Payment APIs]
+        SCHEME[Scheme Information APIs]
         NOT[Notification Service]
         FS[File Storage]
     end
@@ -62,7 +62,7 @@ graph TB
     AI --> CDB
     NLP --> SI
     AR --> GOV
-    AR --> PAY
+    AR --> SCHEME
     AI --> NOT
     MH --> FS
     
@@ -280,41 +280,38 @@ graph TB
 
 **User Database (PostgreSQL)**
 ```sql
--- Users table (Telegram-specific)
+-- Users table (Telegram-specific, minimal data)
 CREATE TABLE users (
     user_id BIGINT PRIMARY KEY, -- Telegram user ID
     telegram_username VARCHAR(50),
-    first_name VARCHAR(100),
-    last_name VARCHAR(100),
     preferred_language VARCHAR(10),
-    location JSONB,
-    demographics JSONB,
     bot_state VARCHAR(50), -- current conversation state
+    session_data JSONB, -- temporary session data only
     created_at TIMESTAMP,
-    updated_at TIMESTAMP
+    last_active TIMESTAMP
 );
 
--- Conversations table
+-- Conversations table (temporary, auto-cleanup)
 CREATE TABLE conversations (
     conversation_id UUID PRIMARY KEY,
     telegram_user_id BIGINT REFERENCES users(user_id),
     chat_id BIGINT, -- Telegram chat ID
-    message_thread_id INTEGER, -- for group chats
     started_at TIMESTAMP,
     ended_at TIMESTAMP,
-    status VARCHAR(20)
+    status VARCHAR(20),
+    expires_at TIMESTAMP -- auto-cleanup after 24 hours
 );
 
--- Messages table
+-- Messages table (temporary, no personal content stored)
 CREATE TABLE messages (
     message_id UUID PRIMARY KEY,
     conversation_id UUID REFERENCES conversations(conversation_id),
     telegram_message_id INTEGER, -- Telegram message ID
     sender VARCHAR(10), -- user, bot
-    content TEXT,
     message_type VARCHAR(20), -- text, voice, photo, document
     language VARCHAR(10),
-    timestamp TIMESTAMP
+    timestamp TIMESTAMP,
+    expires_at TIMESTAMP -- auto-cleanup after 24 hours
 );
 ```
 
@@ -356,7 +353,13 @@ CREATE TABLE messages (
   ],
   fees: {
     amount: 0,
-    currency: "INR"
+    currency: "INR",
+    payment_schemes: ["free", "subsidized", "full_fee"],
+    scheme_details: {
+      free: "Available for BPL families",
+      subsidized: "50% discount for senior citizens",
+      full_fee: "Standard processing fee"
+    }
   },
   processing_time: "90 days",
   last_updated: ISODate()
@@ -408,16 +411,16 @@ flowchart TD
     ANSWER --> ACTION
     FEEDBACK --> ACTION
     
-    ACTION -->|Apply Now| APPLY[Application Process]
+    ACTION -->|Get Fee Info| FEES[Fee & Scheme Information]
     ACTION -->|More Info| INFO[Additional Information]
     ACTION -->|Find Office| LOCATION[Office Locator]
     ACTION -->|Ask More| MENU
     ACTION -->|End| END([Session End])
     
-    APPLY --> TRACK[Application Tracking]
+    FEES --> MENU
     INFO --> MENU
     LOCATION --> MENU
-    TRACK --> END
+    END
 ```
 
 ### Service Discovery Flow
@@ -444,7 +447,7 @@ flowchart LR
         REQUIREMENTS[Requirements]
         PROCESS[Step-by-step Process]
         DOCUMENTS[Document Checklist]
-        FEES[Fees & Timeline]
+        FEES[Fee Information & Schemes]
         OFFICES[Office Locations]
     end
     
@@ -498,6 +501,7 @@ Context Update → Analytics Logging → Conversation Continuation
 /services - Browse government services
 /eligibility - Check eligibility for schemes
 /documents - Get document requirements
+/fees - Get fee information and payment schemes
 /track - Track application status
 /language - Change language preference
 /feedback - Provide feedback
@@ -619,6 +623,7 @@ flowchart LR
         GOV[Government APIs]
         POLICY[Policy Updates]
         SCHEMES[Scheme Database]
+        SUBSIDY[Subsidy Information]
     end
     
     subgraph "Data Processing"
@@ -647,6 +652,7 @@ flowchart LR
     GOV --> DS
     POLICY --> DS
     SCHEMES --> DS
+    SUBSIDY --> DS
     
     DS --> VAL
     VAL --> TRANS
@@ -782,14 +788,13 @@ flowchart LR
 **Advanced Features:**
 - Government API integrations
 - Document verification through photos
-- Application status tracking
-- Telegram Payments integration
-- Admin dashboard for bot management
+- Fee and scheme information system
+- Advanced analytics dashboard for administrators
 
 **Technical Implementation:**
 - Complex third-party API integrations
 - Image processing for document verification
-- Payment gateway setup
+- Comprehensive scheme database
 - Analytics and monitoring dashboard
 - Advanced security measures
 
@@ -872,17 +877,17 @@ flowchart TD
 
 ### Data Protection Framework
 
-#### Encryption Strategy
-- **Data at Rest**: AES-256 encryption for all stored data
-- **Data in Transit**: TLS 1.3 for all communications
-- **End-to-End**: For sensitive personal information
-- **Key Management**: Hardware Security Modules (HSM)
-
 #### Privacy by Design
-- **Data Minimization**: Collect only necessary information
-- **Purpose Limitation**: Use data only for stated purposes
-- **Consent Management**: Clear opt-in/opt-out mechanisms
-- **Right to Deletion**: User data deletion capabilities
+- **No Personal Data Storage**: Only temporary session data stored
+- **Data Minimization**: Collect only necessary information for current session
+- **Automatic Cleanup**: All session data expires and is deleted within 24 hours
+- **Anonymous Analytics**: Usage patterns tracked without personal identifiers
+
+#### Session Management
+- **Temporary Storage**: User preferences and conversation state only
+- **Auto-Expiry**: All data automatically deleted after session ends
+- **No Persistence**: No long-term user data retention
+- **Secure Sessions**: Encrypted session tokens with short expiry
 
 ### Security Architecture
 
@@ -933,16 +938,16 @@ flowchart TD
 
 ### Compliance Framework
 
-#### Indian Regulations
-- Personal Data Protection Bill compliance
-- IT Act 2000 compliance
-- RBI guidelines for payment processing
-- Government data localization requirements
+#### Privacy Standards
+- No personal data storage compliance
+- Session-only data handling
+- Anonymous usage analytics
+- Automatic data cleanup policies
 
 #### International Standards
 - ISO 27001 for information security
 - SOC 2 Type II compliance
-- GDPR compliance for international users
+- Privacy by design principles
 - WCAG 2.1 AA for accessibility
 
 ## Monitoring and Analytics
